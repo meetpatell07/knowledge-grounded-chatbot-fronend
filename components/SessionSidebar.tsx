@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getAllSessions, type Session } from '@/lib/api'
+import { getAllSessions, deleteSession, type Session } from '@/lib/api'
 
 interface SessionSidebarProps {
   currentSessionId: string | null
@@ -17,6 +17,7 @@ export default function SessionSidebar({
   const [sessions, setSessions] = useState<Session[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(true)
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null)
 
   const loadSessions = async () => {
     try {
@@ -33,6 +34,33 @@ export default function SessionSidebar({
   useEffect(() => {
     loadSessions()
   }, [])
+
+  const handleDeleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering the session select
+    
+    // Confirm deletion
+    if (!confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      setDeletingSessionId(sessionId)
+      await deleteSession(sessionId)
+      
+      // If deleted session is current, clear it
+      if (currentSessionId === sessionId) {
+        onSelectSession(null)
+      }
+      
+      // Reload sessions list
+      await loadSessions()
+    } catch (error) {
+      console.error('Error deleting session:', error)
+      alert('Failed to delete session. Please try again.')
+    } finally {
+      setDeletingSessionId(null)
+    }
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -128,32 +156,54 @@ export default function SessionSidebar({
           ) : (
             <div className="p-2">
               {sessions.map((session) => (
-                <button
+                <div
                   key={session.id}
-                  onClick={() => {
-                    onSelectSession(session.id)
-                    setIsOpen(false)
-                  }}
-                  className={`w-full text-left p-3 rounded-lg mb-2 transition-colors ${
+                  className={`group relative w-full p-3 rounded-lg mb-2 transition-colors ${
                     currentSessionId === session.id
                       ? 'bg-primary-100 dark:bg-primary-900/30 border border-primary-300 dark:border-primary-700'
                       : 'hover:bg-slate-100 dark:hover:bg-slate-700 border border-transparent'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
-                        {getPreview(session)}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        {formatDate(session.lastActive)}
-                      </p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                        {session.messages.length} messages
-                      </p>
+                  <button
+                    onClick={() => {
+                      onSelectSession(session.id)
+                      setIsOpen(false)
+                    }}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-start justify-between gap-2 pr-6">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                          {getPreview(session)}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                          {formatDate(session.lastActive)}
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                          {session.messages.length} messages
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => handleDeleteSession(session.id, e)}
+                    disabled={deletingSessionId === session.id}
+                    className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete conversation"
+                  >
+                    {deletingSessionId === session.id ? (
+                      <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -170,4 +220,5 @@ export default function SessionSidebar({
     </>
   )
 }
+
 

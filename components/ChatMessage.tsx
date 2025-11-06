@@ -20,6 +20,21 @@ export default function ChatMessage({ message }: ChatMessageProps) {
     </span>
   ) : null
 
+  // Format timestamp properly
+  const formatTime = (date: Date) => {
+    // Check if date is valid
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      return 'Just now'
+    }
+    
+    // Format as local time
+    return date.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true // Use 12-hour format with AM/PM
+    })
+  }
+
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
@@ -34,7 +49,8 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         <div className={`text-xs mt-1 ${
           isUser ? 'text-primary-100' : 'text-slate-500 dark:text-slate-400'
         }`}>
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {formatTime(message.timestamp)}
+          {/* {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} */}
         </div>
       </div>
     </div>
