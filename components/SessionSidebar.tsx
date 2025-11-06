@@ -32,9 +32,6 @@ export default function SessionSidebar({
 
   useEffect(() => {
     loadSessions()
-    // Refresh sessions every 5 seconds
-    const interval = setInterval(loadSessions, 5000)
-    return () => clearInterval(interval)
   }, [])
 
   const formatDate = (dateString: string) => {
