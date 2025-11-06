@@ -1,6 +1,4 @@
-const API_URL = process.env.API_URL || 'http://localhost:8000'
-// Remove PRISMA_API_URL - no longer needed
-// const PRISMA_API_URL = process.env.NEXT_PUBLIC_PRISMA_API_URL || 'http://localhost:4000'
+const API_URL = process.env.API_URL || 'https://knowledge-grounded-chatbot.onrender.com'
 
 export interface ChatRequest {
   session_id?: string
