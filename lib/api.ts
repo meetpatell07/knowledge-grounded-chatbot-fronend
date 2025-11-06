@@ -89,3 +89,13 @@ export async function getSessionMessages(sessionId: string): Promise<APIMessage[
   return response.json()
 }
 
+export async function deleteSession(sessionId: string): Promise<void> {
+  const response = await fetch(`${API_URL}/sessions/${sessionId}`, {
+    method: 'DELETE',
+  })
+  
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
+    throw new Error(error.detail || `Failed to delete session: ${response.statusText}`)
+  }
+}

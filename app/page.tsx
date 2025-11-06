@@ -43,7 +43,7 @@ export default function Home() {
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
       source: (msg.source as SourceType) || undefined,
-      timestamp: new Date(msg.createdAt),
+      timestamp: new Date(msg.createdAt), 
       isTemporary: false,
     }
   }, [])
